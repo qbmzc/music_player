@@ -1,0 +1,11 @@
+[package]
+name = "music_player"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = "4.0"
+rodio = "0.14"
+walkdir = "2.3"
+serde = {version = "1.0", features = ["derive"]}
+toml = "0.5"
