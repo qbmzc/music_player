@@ -1,18 +1,16 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
+import createRouter from 'vue'
 import Upload from '@/components/Upload.vue'
 import MusicList from '@/components/MusicList.vue'
 
-Vue.use(VueRouter)
 
-const routes = [
+const routes=  [
     { path: '/', component: Upload },
     { path: '/music', component: MusicList }
 ]
 
-const router = new VueRouter({
-    mode: 'history',
-    routes
+const router = createRouter({
+    history: createWebHistory() ,
+    routes: routes
 })
 
 export default router
