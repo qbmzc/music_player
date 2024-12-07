@@ -1,7 +1,6 @@
-import createRouter from 'vue'
 import Upload from '@/components/Upload.vue'
 import MusicList from '@/components/MusicList.vue'
-
+import {createRouter, createWebHistory} from 'vue-router'
 
 const routes=  [
     { path: '/', component: Upload },
@@ -9,7 +8,7 @@ const routes=  [
 ]
 
 const router = createRouter({
-    history: createWebHistory() ,
+    history: createWebHistory(),
     routes: routes
 })
 
