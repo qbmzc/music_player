@@ -19,8 +19,6 @@ public class Music {
     private String fileUrl;
     private String title;
     private String author;
-    private String album;
-    private String genre;
-    private String path;
-    private String description;
+    private Long size;
+    private String filePath;
 }
