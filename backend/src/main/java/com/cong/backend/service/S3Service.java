@@ -1,8 +1,6 @@
 package com.cong.backend.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -10,12 +8,12 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
-import java.net.URL;
 import java.time.Duration;
 import java.util.UUID;
 /**
@@ -32,6 +30,9 @@ public class S3Service {
         @Value("${aws.s3.bucketName}")
         private String bucketName;
 
+    @Value("${aws.region}")
+    private String region;
+
         public S3Service(
                 @Value("${aws.accessKeyId}") String accessKeyId,
                 @Value("${aws.secretAccessKey}") String secretAccessKey,
@@ -46,7 +47,7 @@ public class S3Service {
         }
 
         public String generatePresignedUrl(String fileName, String contentType) {
-            String key = UUID.randomUUID().toString() + "_" + fileName;
+            String key = "music/"+UUID.randomUUID().toString() + "_" + fileName;
 
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
@@ -60,14 +61,17 @@ public class S3Service {
                     .putObjectRequest(putObjectRequest)
                     .build();
 
-            PresignedPutObjectRequest presignedRequest = s3Client.presignPutObject(presignRequest);
-
-            return presignedRequest.url().toString();
+            try (S3Presigner s3Presigner = S3Presigner.builder().s3Client(s3Client).region(Region.of(region)).build()) {
+                PresignedPutObjectRequest request = s3Presigner.presignPutObject(presignRequest);
+                return request.url().toString();
+            }
         }
 
         public ListObjectsV2Response listMusicFiles() {
             ListObjectsV2Request listReq = ListObjectsV2Request.builder()
                     .bucket(bucketName)
+                    .prefix("music/")
+                    .maxKeys(10)
                     .build();
 
             return s3Client.listObjectsV2(listReq);
@@ -84,9 +88,10 @@ public class S3Service {
                     .getObjectRequest(getObjectRequest)
                     .build();
 
-            PresignedGetObjectRequest presignedGet = s3Client.presignGetObject(presignRequest);
-
-            return presignedGet.url().toString();
+            try (S3Presigner s3Presigner = S3Presigner.builder().s3Client(s3Client).region(Region.of(region)).build()) {
+                PresignedGetObjectRequest request = s3Presigner.presignGetObject(presignRequest);
+                return request.url().toString();
+            }
         }
 
 
