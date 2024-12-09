@@ -46,14 +46,12 @@ public class S3Controller {
         List<S3Object> objects = s3Service.listMusicFiles().contents();
         return objects.stream().filter(o -> StringUtils.isNotBlank(FilenameUtils.getExtension(o.key())))
                 .map(obj -> new MusicFile(
-                obj.key(),
-                s3Service.generateGetUrl(obj.key()),
-                obj.size(),
-                        "unknown",
+//                s3Service.generateGetUrl(obj.key()),
+                        "https://cdn.moefe.org/music/mp3/thing.mp3",
+                        "cong",
                         FilenameUtils.getName(obj.key()),
-                        "http://test-fsservice.oss-cn-shanghai.aliyuncs.com/fs/test/2024/202412091544424.jpg",
-                        obj.lastModified().toString()
-        )).collect(Collectors.toList());
+                        "http://test-fsservice.oss-cn-shanghai.aliyuncs.com/fs/test/2024/202412091544424.jpg"
+                )).collect(Collectors.toList());
     }
 
     /**
@@ -69,13 +67,9 @@ public class S3Controller {
     @NoArgsConstructor
     public static class MusicFile {
         // Getters 和 Setters
-        private String key;
         private String src;
-
-        private long size;
         private String artist;
         private String title;
         private String pic;
-        private String lastModified;
     }
 }

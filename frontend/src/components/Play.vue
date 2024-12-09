@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <aplayer :music="music" />
+    <aplayer :list="musicList" />
   </div>
 </template>
 
@@ -40,7 +40,7 @@ import axios from 'axios'
 export default {
   data() {
     return {
-      music: []
+      musicList: []
     }
   },
   created() {
@@ -50,7 +50,7 @@ export default {
     async fetchMusicList() {
       try {
         const response = await axios.get('/api/music/list')
-        this.music = response.data
+        this.musicList = response.data
       } catch (error) {
         console.error(error)
       }
