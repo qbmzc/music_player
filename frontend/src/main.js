@@ -8,7 +8,6 @@ import APlayer from 'vue3-aplayer';
 loadFonts()
 
 createApp(App)
-  .use(router)
-    .use(APlayer)
-  .use(vuetify)
+  .use(router) .use(vuetify)
+    .component('aplayer',APlayer)
   .mount('#app')
