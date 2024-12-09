@@ -1,31 +1,50 @@
 <template>
-  <Aplayer :songs='songs' />
-  <!-- 参数说明 -->
-  <!-- direction方向参数 -->
+  <div>
+    <Aplayer :songs="songs" />
+    <!-- 你可以在这里添加更多的UI元素来展示音乐列表 -->
+  </div>
 </template>
-<script setup lang="ts">
-import { reactive,toRefs } from 'vue'
-import Aplayer from './views/Aplayer.vue';
-let state = reactive({
-  songs: [
-    {
-      name: '渡凉关',
-      artist: '叶里',
-      url: 'https://tm-fs-test.s3.amazonaws.com/music/%E5%B9%BB%E4%B9%8B%E5%A2%83.mp3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQK6N4RH7UIVJGR3X/20241209/us-west-2/s3/aws4_request&X-Amz-Date=20241209T095954Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=0ffe1f2adefd80dc709e34dcf065e97a6b7c4bed15a5d9f09d43f3e6c7aa8dd5',
-      cover: 'https://p1.music.126.net/K0-IPcIQ9QFvA0jXTBqoWQ==/109951163636756693.jpg?param=300y300', // prettier-ignore
-      lrc: 'https://cdn.moefe.org/music/lrc/thing.lrc',
-    },
-    {
-      name: '万千花蕊慈母悲哀',
-      artist: '泠鸢yousa',
-      url: 'https://music.163.com/song/media/outer/url?id=1903991886.mp3 ',
-      cover: 'https://p1.music.126.net/K0-IPcIQ9QFvA0jXTBqoWQ==/109951163636756693.jpg?param=300y300', // prettier-ignore
-      lrc: 'https://cdn.moefe.org/music/lrc/kyoukiranbu.lrc',
-    }
-  ]
-})
-let { songs } = toRefs(state)
-</script>
-<style scoped>
 
+<script setup lang="ts">
+import {reactive, toRefs, onMounted, ref} from 'vue'
+import ajax from './Network/index'
+import Aplayer from './views/Aplayer.vue'
+
+// 创建响应式对象来存储音乐列表
+const state = reactive({
+  songs: [] as Array<{ name: string; artist: string; url: string; cover: string; lrc: string }>
+})
+
+
+
+
+
+// 创建获取音乐列表的请求方法
+const fetchMusicList = async () => {
+
+  try {
+    // 调用 ajax 请求获取音乐列表
+    const response = await ajax({
+      url: '/api/music/list',
+      method: 'get',
+      params: {}
+    });
+    state.songs = response.data; // 更新响应式数据
+  } catch (error) {
+      // 其他错误处理
+      console.error('Error fetching music list:', error);
+  }
+}
+
+// 在组件挂载时调用请求方法
+onMounted(() => {
+  fetchMusicList()
+})
+
+// 返回响应式数据和方法
+const { songs } = toRefs(state)
+</script>
+
+<style scoped>
+/* 添加你自己的样式 */
 </style>
