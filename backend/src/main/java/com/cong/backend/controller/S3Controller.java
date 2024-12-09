@@ -1,14 +1,17 @@
 package com.cong.backend.controller;
 
 import com.cong.backend.service.S3Service;
+import lombok.*;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -23,44 +26,56 @@ public class S3Controller {
     private S3Service s3Service;
 
     @GetMapping("/upload/presigned-url")
-    public String getPresignedUrl(@RequestParam String fileName, @RequestParam String fileType) {
-        return s3Service.generatePresignedUrl(fileName, fileType);
+    public Map<String, String> getPresignedUrl(@RequestParam String fileName, @RequestParam String fileType) {
+        String url = s3Service.generatePresignedUrl(fileName, fileType);
+        HashMap<String, String> data = new HashMap<>();
+        data.put("url", url);
+        return data;
+    }
+
+    @PostMapping(value = "/upload/file")
+    public Map<String, String> uploadFile(@RequestPart MultipartFile file) {
+        String url = s3Service.uploadFile(file);
+        HashMap<String, String> data = new HashMap<>();
+        data.put("url", url);
+        return data;
     }
 
     @GetMapping("/music/list")
     public List<MusicFile> listMusic() {
         List<S3Object> objects = s3Service.listMusicFiles().contents();
-        return objects.stream().map(obj -> new MusicFile(
+        return objects.stream().filter(o -> StringUtils.isNotBlank(FilenameUtils.getExtension(o.key())))
+                .map(obj -> new MusicFile(
                 obj.key(),
                 s3Service.generateGetUrl(obj.key()),
                 obj.size(),
-                obj.lastModified()
+                        "unknown",
+                        FilenameUtils.getName(obj.key()),
+                        "http://test-fsservice.oss-cn-shanghai.aliyuncs.com/fs/test/2024/202412091544424.jpg",
+                        obj.lastModified().toString()
         )).collect(Collectors.toList());
     }
 
-    // DTO类
+    /**
+     * title: item.title,
+     * artist: item.artist,
+     * src: item.src,
+     * pic: item.pic
+     */
+    @Setter
+    @Getter
+    @ToString
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class MusicFile {
-        private String key;
-        private String url;
-        private long size;
-        private String lastModified;
-
-        public MusicFile(String key, String url, long size, java.time.Instant lastModified) {
-            this.key = key;
-            this.url = url;
-            this.size = size;
-            this.lastModified = lastModified.toString();
-        }
-
         // Getters 和 Setters
-        public String getKey() { return key; }
-        public String getUrl() { return url; }
-        public long getSize() { return size; }
-        public String getLastModified() { return lastModified; }
+        private String key;
+        private String src;
 
-        public void setKey(String key) { this.key = key; }
-        public void setUrl(String url) { this.url = url; }
-        public void setSize(long size) { this.size = size; }
-        public void setLastModified(String lastModified) { this.lastModified = lastModified; }
+        private long size;
+        private String artist;
+        private String title;
+        private String pic;
+        private String lastModified;
     }
 }

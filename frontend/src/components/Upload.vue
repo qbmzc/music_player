@@ -24,19 +24,13 @@ export default {
         return
       }
       try {
-        // 获取预签名URL
-        const response = await axios.get('/api/upload/presigned-url', {
-          params: {
-            fileName: this.file.name,
-            fileType: this.file.type
-          }
-        })
-        const { url } = response.data
-
+        const url = "/api/upload/file"
         // 上传文件到S3
-        await axios.put(url, this.file, {
+        let formData = new FormData();
+        formData.append("file", this.file)
+        await axios.post(url, formData, {
           headers: {
-            'Content-Type': this.file.type
+            'Content-Type': "multipart/form-data"
           }
         })
 

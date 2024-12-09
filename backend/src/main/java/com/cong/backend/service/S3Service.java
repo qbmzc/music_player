@@ -3,8 +3,7 @@ package com.cong.backend.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
@@ -14,6 +13,12 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.UUID;
 /**
@@ -34,26 +39,21 @@ public class S3Service {
     private String region;
 
         public S3Service(
-                @Value("${aws.accessKeyId}") String accessKeyId,
-                @Value("${aws.secretAccessKey}") String secretAccessKey,
-                @Value("${aws.region}") String region
+                @Value("${aws.region}")
+                String region
         ) {
             this.s3Client = S3Client.builder()
-                    .credentialsProvider(StaticCredentialsProvider.create(
-                            AwsBasicCredentials.create(accessKeyId, secretAccessKey)
-                    ))
                     .region(Region.of(region))
                     .build();
         }
 
         public String generatePresignedUrl(String fileName, String contentType) {
             String key = "music/"+UUID.randomUUID().toString() + "_" + fileName;
-
+            log.info(contentType);
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
                     .contentType(contentType)
-                    .acl(ObjectCannedACL.PUBLIC_READ)
                     .build();
 
             PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
@@ -61,8 +61,9 @@ public class S3Service {
                     .putObjectRequest(putObjectRequest)
                     .build();
 
-            try (S3Presigner s3Presigner = S3Presigner.builder().s3Client(s3Client).region(Region.of(region)).build()) {
+            try (S3Presigner s3Presigner = S3Presigner.create()) {
                 PresignedPutObjectRequest request = s3Presigner.presignPutObject(presignRequest);
+                log.info(request.url().toString());
                 return request.url().toString();
             }
         }
@@ -95,4 +96,32 @@ public class S3Service {
         }
 
 
+    public String uploadFile(MultipartFile file) {
+        String url = this.generatePresignedUrl(file.getOriginalFilename(), file.getContentType());
+        useHttpClientToPutObject(url, file.getContentType());
+        return url;
+    }
+
+    /**
+     * Use the JDK HttpClient class (since v11) to upload a String,
+     * but you can use any HTTP client.
+     *
+     * @param presignedUrl - The presigned URL.
+     */
+    public void useHttpClientToPutObject(String presignedUrl, String contentType) {
+        HttpClient httpClient = HttpClient.newHttpClient();
+        try {
+            final HttpResponse<Void> response = httpClient.send(HttpRequest.newBuilder()
+                            .uri(new URI(presignedUrl))
+                            .header("Content-Type", contentType)
+                            .PUT(HttpRequest.BodyPublishers
+                                    .ofString("This text was uploaded as an object by using a presigned URL."))
+                            .build(),
+                    HttpResponse.BodyHandlers.discarding());
+            log.info("HTTP response code is " + response.statusCode());
+        } catch (S3Exception | IOException | URISyntaxException | InterruptedException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+    // snippet-end:[presigned.java2.generatepresignedurl.main]
 }
