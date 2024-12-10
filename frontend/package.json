@@ -9,12 +9,12 @@
   },
   "dependencies": {
     "@mdi/font": "5.9.55",
+    "@worstone/vue-aplayer": "^1.0.7",
     "axios": "^1.7.9",
     "core-js": "^3.8.3",
     "roboto-fontface": "*",
     "vue": "^3.2.13",
     "vue-router": "^4.5.0",
-    "vue3-aplayer": "^1.7.3",
     "vuetify": "^3.0.0-beta.0",
     "webfontloader": "^1.0.0"
   },
