@@ -41,16 +41,21 @@ public class S3Controller {
         return data;
     }
 
+    /**
+     * songs: [] as Array<{ name: string; artist: string; url: string; cover: string; lrc: string }>
+     *
+     * @return
+     */
     @GetMapping("/music/list")
     public List<MusicFile> listMusic() {
         List<S3Object> objects = s3Service.listMusicFiles().contents();
         return objects.stream().filter(o -> StringUtils.isNotBlank(FilenameUtils.getExtension(o.key())))
                 .map(obj -> new MusicFile(
-//                s3Service.generateGetUrl(obj.key()),
-                        "https://cdn.moefe.org/music/mp3/thing.mp3",
-                        "cong",
                         FilenameUtils.getName(obj.key()),
-                        "http://test-fsservice.oss-cn-shanghai.aliyuncs.com/fs/test/2024/202412091544424.jpg"
+                        "cong",
+                        s3Service.generateGetUrl(obj.key()),
+                        "http://test-fsservice.oss-cn-shanghai.aliyuncs.com/fs/test/2024/202412091544424.jpg",
+                        ""
                 )).collect(Collectors.toList());
     }
 
@@ -59,6 +64,7 @@ public class S3Controller {
      * artist: item.artist,
      * src: item.src,
      * pic: item.pic
+     *   songs: [] as Array<{ name: string; artist: string; url: string; cover: string; lrc: string }>
      */
     @Setter
     @Getter
@@ -67,9 +73,10 @@ public class S3Controller {
     @NoArgsConstructor
     public static class MusicFile {
         // Getters 和 Setters
-        private String src;
+        private String name;
         private String artist;
-        private String title;
-        private String pic;
+        private String url;
+        private String cover;
+        private String lrc;
     }
 }

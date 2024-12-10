@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import {reactive, toRefs, onMounted, ref} from 'vue'
+import {onMounted, reactive, toRefs} from 'vue'
 import ajax from './Network/index'
 import Aplayer from './views/Aplayer.vue'
 
@@ -29,7 +29,9 @@ const fetchMusicList = async () => {
       method: 'get',
       params: {}
     });
-    state.songs = response.data; // 更新响应式数据
+    console.log(response)
+    state.songs = response;// 更新响应式数据
+    console.log(state.songs);
   } catch (error) {
       // 其他错误处理
       console.error('Error fetching music list:', error);

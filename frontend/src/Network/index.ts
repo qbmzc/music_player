@@ -23,7 +23,7 @@ function ajax<T>(options: OptionsType): Promise<ResponseData<T>> {
         try {
             // 创建一个 axios 实例
             const axiosInstance = axios.create({
-                baseURL: url,  // 基础URL配置
+                baseURL: '',  // 基础URL配置
                 timeout: 7000, // 设置请求超时
             });
 
