@@ -97,7 +97,7 @@ const voicePower = ref(0.5);
 interface musicState {
   musicArr: Array<{
     name?: string, artist?: string,
-    url?: string,
+    url: string,
     cover?: string, // prettier-ignore
     lrc?: string
   }>,
